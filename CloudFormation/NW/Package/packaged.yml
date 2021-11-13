@@ -1,0 +1,178 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: VPC and Subnet Create
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: Project Name Prefix
+      Parameters:
+      - ProjectName
+    - Label:
+        default: Network Configuration
+      Parameters:
+      - VpcCidr
+      - PublicSubnetCidrA
+      - PublicSubnetCidrC
+      - PublicSubnetCidrD
+      - PrivateSubnetCidrA
+      - PrivateSubnetCidrC
+      - PrivateSubnetCidrD
+    ParameterLabels:
+      VpcCidr:
+        default: VPC Cidr
+      PublicSubnetCidrA:
+        default: PublicSubnetA Cidr
+      PublicSubnetCidrC:
+        default: PublicSubnetC Cidr
+      PublicSubnetCidrD:
+        default: PublicSubnetD Cidr
+      PrivateSubnetCidrA:
+        default: PrivateSubnetA Cidr
+      PrivateSubnetCidrC:
+        default: PrivateSubnetC Cidr
+      PrivateSubnetCidrD:
+        default: PrivateSubnetD Cidr
+Parameters:
+  ProjectName:
+    Type: String
+  VpcCidr:
+    Type: String
+    Default: 10.1.0.0/16
+  PublicSubnetCidrA:
+    Type: String
+    Default: 10.1.0.0/24
+  PublicSubnetCidrC:
+    Type: String
+    Default: 10.1.2.0/24
+  PublicSubnetCidrD:
+    Type: String
+    Default: 10.1.4.0/24
+  PrivateSubnetCidrA:
+    Type: String
+    Default: 10.1.1.0/24
+  PrivateSubnetCidrC:
+    Type: String
+    Default: 10.1.3.0/24
+  PrivateSubnetCidrD:
+    Type: String
+    Default: 10.1.5.0/24
+  Environment:
+    Type: String
+    Description: Environment Setting
+Resources:
+  Vpc:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.ap-northeast-1.amazonaws.com/suzukis-cloudformatin-template-s3-store-prod/b038194e8558ed8d4e0215623c54205f.template
+      Parameters:
+        NestVpcCidr:
+          Ref: VpcCidr
+        NestProjectName:
+          Ref: ProjectName
+        NestEnvironment:
+          Ref: Environment
+  InternetGateway:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.ap-northeast-1.amazonaws.com/suzukis-cloudformatin-template-s3-store-prod/229e9f2b2f45906bed9852cd5e7872c2.template
+      Parameters:
+        NestVpcId:
+          Fn::GetAtt:
+          - Vpc
+          - Outputs.NestVpcId
+        NestProjectName:
+          Ref: ProjectName
+        NestEnvironment:
+          Ref: Environment
+  PublicSubnet:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.ap-northeast-1.amazonaws.com/suzukis-cloudformatin-template-s3-store-prod/9c10961fd32d37a2ea6508f4c4fc9ac9.template
+      Parameters:
+        NestVpcId:
+          Fn::GetAtt:
+          - Vpc
+          - Outputs.NestVpcId
+        NestPublicSubnetCidrA:
+          Ref: PublicSubnetCidrA
+        NestPublicSubnetCidrC:
+          Ref: PublicSubnetCidrC
+        NestPublicSubnetCidrD:
+          Ref: PublicSubnetCidrD
+        NestProjectName:
+          Ref: ProjectName
+        NestEnvironment:
+          Ref: Environment
+  PrivateSubnet:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.ap-northeast-1.amazonaws.com/suzukis-cloudformatin-template-s3-store-prod/b619eae0ef27e552907ccca679cb8de2.template
+      Parameters:
+        NestVpcId:
+          Fn::GetAtt:
+          - Vpc
+          - Outputs.NestVpcId
+        NestPrivateSubnetCidrA:
+          Ref: PrivateSubnetCidrA
+        NestPrivateSubnetCidrC:
+          Ref: PrivateSubnetCidrC
+        NestPrivateSubnetCidrD:
+          Ref: PrivateSubnetCidrD
+        NestProjectName:
+          Ref: ProjectName
+        NestEnvironment:
+          Ref: Environment
+  PublicRouteTable:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.ap-northeast-1.amazonaws.com/suzukis-cloudformatin-template-s3-store-prod/7c55749f7973d8e6f655a8c0a55ba6cf.template
+      Parameters:
+        NestVpcId:
+          Fn::GetAtt:
+          - Vpc
+          - Outputs.NestVpcId
+        NestInternetGateway:
+          Fn::GetAtt:
+          - InternetGateway
+          - Outputs.NestInternetGateway
+        NestPublicSubnetA:
+          Fn::GetAtt:
+          - PublicSubnet
+          - Outputs.NestPublicSubnetA
+        NestPublicSubnetC:
+          Fn::GetAtt:
+          - PublicSubnet
+          - Outputs.NestPublicSubnetC
+        NestPublicSubnetD:
+          Fn::GetAtt:
+          - PublicSubnet
+          - Outputs.NestPublicSubnetD
+        NestProjectName:
+          Ref: ProjectName
+        NestEnvironment:
+          Ref: Environment
+  PrivateRouteTable:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.ap-northeast-1.amazonaws.com/suzukis-cloudformatin-template-s3-store-prod/aa44132c8de718542bb22abe1939381e.template
+      Parameters:
+        NestVpcId:
+          Fn::GetAtt:
+          - Vpc
+          - Outputs.NestVpcId
+        NestPrivateSubnetA:
+          Fn::GetAtt:
+          - PrivateSubnet
+          - Outputs.NestPrivateSubnetA
+        NestPrivateSubnetC:
+          Fn::GetAtt:
+          - PrivateSubnet
+          - Outputs.NestPrivateSubnetC
+        NestPrivateSubnetD:
+          Fn::GetAtt:
+          - PrivateSubnet
+          - Outputs.NestPrivateSubnetD
+        NestProjectName:
+          Ref: ProjectName
+        NestEnvironment:
+          Ref: Environment

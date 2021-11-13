@@ -1,0 +1,90 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: PrivateRouteTable 
+
+Parameters: 
+  NestVpcId:
+    Type: String
+
+  NestPrivateSubnetA:
+    Type: String
+
+  NestPrivateSubnetC:
+    Type: String
+
+  NestPrivateSubnetD:
+    Type: String
+
+  NestProjectName:
+    Type: String
+
+  NestEnvironment:
+    Type: String
+
+Resources:
+# Private RouteTableA Create
+  NestPrivateRouteTableA: 
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      VpcId: !Ref NestVpcId
+      Tags: 
+        - Key: Name
+          Value: !Sub "${NestProjectName}-private-route-a-${NestEnvironment}"
+
+# Private RouteTableC Create
+  NestPrivateRouteTableC: 
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      VpcId: !Ref NestVpcId
+      Tags: 
+        - Key: Name
+          Value: !Sub "${NestProjectName}-private-route-c-${NestEnvironment}"
+
+# Private RouteTableD Create
+  NestPrivateRouteTableD: 
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      VpcId: !Ref NestVpcId
+      Tags: 
+        - Key: Name
+          Value: !Sub "${NestProjectName}-private-route-d-${NestEnvironment}"
+
+# ------------------------------------------------------------#
+# RouteTable Associate
+# ------------------------------------------------------------# 
+# PrivateRouteTable Associate SubnetA
+  NestPrivateSubnetARouteTableAssociationA: 
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties: 
+      SubnetId: !Ref NestPrivateSubnetA
+      RouteTableId: !Ref NestPrivateRouteTableA 
+
+# PrivateRouteTable Associate SubnetC
+  NestPrivateSubnetCRouteTableAssociationC: 
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties: 
+      SubnetId: !Ref NestPrivateSubnetC
+      RouteTableId: !Ref NestPrivateRouteTableC
+
+# PrivateRouteTable Associate SubnetD
+  NestPrivateSubnetDRouteTableAssociationD: 
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties: 
+      SubnetId: !Ref NestPrivateSubnetD
+      RouteTableId: !Ref NestPrivateRouteTableD
+
+Outputs:
+# Route
+  NestPrivateRouteTableA:
+    Value: !Ref NestPrivateRouteTableA
+    Export:
+      Name: !Sub "${NestProjectName}-private-route-a-${NestEnvironment}"
+
+  NestPrivateRouteTableC:
+    Value: !Ref NestPrivateRouteTableC
+    Export:
+      Name: !Sub "${NestProjectName}-private-route-c-${NestEnvironment}"
+
+  NestPrivateRouteTableD:
+    Value: !Ref NestPrivateRouteTableD
+    Export:
+      Name: !Sub "${NestProjectName}-private-route-d-${NestEnvironment}"

@@ -1,0 +1,37 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: vpc 
+
+Parameters: 
+  NestVpcCidr:
+    Type: String
+
+  NestProjectName:
+    Type: String
+
+  NestEnvironment:
+    Type: String
+
+Resources:
+  # VPCの作成
+  NestVpc: 
+    Type: "AWS::EC2::VPC"
+    Properties: 
+      CidrBlock: !Ref NestVpcCidr
+      EnableDnsSupport: "true"
+      EnableDnsHostnames: "true"
+      InstanceTenancy: default
+      Tags: 
+        - Key: Name
+          Value: !Sub "${NestProjectName}-vpc-${NestEnvironment}"
+
+Outputs:
+# VPC
+  NestVpcId:
+    Value: !Ref NestVpc
+    Export:
+      Name: !Sub "${NestProjectName}-vpc-${NestEnvironment}"
+
+  NestVpcCidr:
+    Value: !Ref NestVpcCidr
+    Export:
+      Name: !Sub "${NestProjectName}-vpc-cidr-${NestEnvironment}"

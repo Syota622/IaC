@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: PublicSubnet 
+
+Parameters: 
+  NestVpcId:
+    Type: String
+
+  NestPublicSubnetCidrA:
+    Type: String
+
+  NestPublicSubnetCidrC:
+    Type: String
+
+  NestPublicSubnetCidrD:
+    Type: String
+
+  NestProjectName:
+    Type: String
+
+  NestEnvironment:
+    Type: String
+
+Resources:
+# Public SubnetA Create
+  NestPublicSubnetA: 
+    Type: AWS::EC2::Subnet
+    Properties: 
+      VpcId: !Ref NestVpcId
+      AvailabilityZone: "ap-northeast-1a"
+      CidrBlock: !Ref NestPublicSubnetCidrA
+      Tags: 
+        - Key: Name
+          Value: !Sub "${NestProjectName}-public-subnet-a-${NestEnvironment}"
+
+# Public SubnetC Create
+  NestPublicSubnetC: 
+    Type: AWS::EC2::Subnet
+    Properties: 
+      VpcId: !Ref NestVpcId
+      AvailabilityZone: "ap-northeast-1c"
+      CidrBlock: !Ref NestPublicSubnetCidrC
+      Tags: 
+        - Key: Name
+          Value: !Sub "${NestProjectName}-public-subnet-c-${NestEnvironment}"
+
+# Public SubnetD Create
+  NestPublicSubnetD: 
+    Type: AWS::EC2::Subnet
+    Properties: 
+      VpcId: !Ref NestVpcId
+      AvailabilityZone: "ap-northeast-1d"
+      CidrBlock: !Ref NestPublicSubnetCidrD
+      Tags: 
+        - Key: Name
+          Value: !Sub "${NestProjectName}-public-subnet-d-${NestEnvironment}"
+
+Outputs:
+# Subnet
+  NestPublicSubnetA:
+    Value: !Ref NestPublicSubnetA
+    Export:
+      Name: !Sub "${NestProjectName}-public-subnet-a-${NestEnvironment}"
+
+  NestPublicSubnetCidrA:
+    Value: !Ref NestPublicSubnetCidrA
+    Export:
+      Name: !Sub "${NestProjectName}-public-subnet-a-cidr-${NestEnvironment}"
+
+  NestPublicSubnetC:
+    Value: !Ref NestPublicSubnetC
+    Export:
+      Name: !Sub "${NestProjectName}-public-subnet-c-${NestEnvironment}"
+
+  NestPublicSubnetCidrC:
+    Value: !Ref NestPublicSubnetCidrC
+    Export:
+      Name: !Sub "${NestProjectName}-public-subnet-c-cidr-${NestEnvironment}"
+
+  NestPublicSubnetD:
+    Value: !Ref NestPublicSubnetD
+    Export:
+      Name: !Sub "${NestProjectName}-public-subnet-d-${NestEnvironment}"
+
+  NestPublicSubnetCidrD:
+    Value: !Ref NestPublicSubnetCidrD
+    Export:
+      Name: !Sub "${NestProjectName}-public-subnet-d-cidr-${NestEnvironment}"

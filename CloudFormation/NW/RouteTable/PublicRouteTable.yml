@@ -1,0 +1,120 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: PrivateRouteTable 
+
+Parameters: 
+  NestVpcId:
+    Type: String
+    
+  NestInternetGateway:
+    Type: String
+
+  NestPublicSubnetA:
+    Type: String
+
+  NestPublicSubnetC:
+    Type: String
+
+  NestPublicSubnetD:
+    Type: String
+
+  NestProjectName:
+    Type: String
+
+  NestEnvironment:
+    Type: String
+
+Resources:
+# Public RouteTableA Create
+  NestPublicRouteTableA: 
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      VpcId: !Ref NestVpcId
+      Tags: 
+        - Key: Name
+          Value: !Sub "${NestProjectName}-public-route-a-${NestEnvironment}"
+
+# Public RouteTableC Create
+  NestPublicRouteTableC: 
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      VpcId: !Ref NestVpcId
+      Tags: 
+        - Key: Name
+          Value: !Sub "${NestProjectName}-public-route-c-${NestEnvironment}"
+
+# Public RouteTableD Create
+  NestPublicRouteTableD: 
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      VpcId: !Ref NestVpcId
+      Tags: 
+        - Key: Name
+          Value: !Sub "${NestProjectName}-public-route-d-${NestEnvironment}"
+
+# ------------------------------------------------------------#
+# Routing
+# ------------------------------------------------------------# 
+# PublicRouteA Create
+  NestPublicRouteA: 
+    Type: "AWS::EC2::Route"
+    Properties: 
+      RouteTableId: !Ref NestPublicRouteTableA 
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId: !Ref NestInternetGateway 
+
+# PublicRouteC Create
+  NestPublicRouteC: 
+    Type: "AWS::EC2::Route"
+    Properties: 
+      RouteTableId: !Ref NestPublicRouteTableC 
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId: !Ref NestInternetGateway 
+
+# PublicRouteD Create
+  NestPublicRouteD: 
+    Type: "AWS::EC2::Route"
+    Properties: 
+      RouteTableId: !Ref NestPublicRouteTableD
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId: !Ref NestInternetGateway 
+
+# ------------------------------------------------------------#
+# RouteTable Associate
+# ------------------------------------------------------------# 
+# PublicRouteTable Associate SubnetA
+  NestPublicSubnetARouteTableAssociationA: 
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties: 
+      SubnetId: !Ref NestPublicSubnetA 
+      RouteTableId: !Ref NestPublicRouteTableA
+
+# PublicRouteTable Associate SubnetC
+  NestPublicSubnetCRouteTableAssociationC: 
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties: 
+      SubnetId: !Ref NestPublicSubnetC 
+      RouteTableId: !Ref NestPublicRouteTableC
+
+# PublicRouteTable Associate SubnetD
+  NestPublicSubnetDRouteTableAssociationD: 
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties: 
+      SubnetId: !Ref NestPublicSubnetD
+      RouteTableId: !Ref NestPublicRouteTableD
+
+Outputs:
+# Route
+  NestPublicRouteTableA:
+    Value: !Ref NestPublicRouteTableA
+    Export:
+      Name: !Sub "${NestProjectName}-public-route-a-${NestEnvironment}"
+
+  NestPublicRouteTableC:
+    Value: !Ref NestPublicRouteTableC
+    Export:
+      Name: !Sub "${NestProjectName}-public-route-c-${NestEnvironment}"
+
+  NestPublicRouteTableD:
+    Value: !Ref NestPublicRouteTableD
+    Export:
+      Name: !Sub "${NestProjectName}-public-route-d-${NestEnvironment}"

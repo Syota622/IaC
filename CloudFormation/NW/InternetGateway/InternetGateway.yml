@@ -1,0 +1,32 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: vpc 
+
+Parameters: 
+  NestVpcId:
+    Type: String
+
+  NestProjectName:
+    Type: String
+
+  NestEnvironment:
+    Type: String
+
+Resources:
+# InternetGateway Create
+  NestInternetGateway: 
+    Type: AWS::EC2::InternetGateway
+    Properties: 
+      Tags: 
+        - Key: Name
+          Value: !Sub "${NestProjectName}-igw-${NestEnvironment}"
+
+# IGW Attach
+  NestInternetGatewayAttachment: 
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties: 
+      InternetGatewayId: !Ref NestInternetGateway
+      VpcId: !Ref NestVpcId
+
+Outputs:
+  NestInternetGateway:
+    Value: !Ref NestInternetGateway

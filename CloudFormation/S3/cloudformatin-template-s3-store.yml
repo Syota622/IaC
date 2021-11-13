@@ -13,15 +13,21 @@ Parameters:
 
 Resources:
   CloudFormationTemplateBucketStore:
-    Type: "AWS::S3::Bucket"
+    Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub '${ProjectName}-${CloudFormationTemplateBucketName}-${Environment}'
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
+              SSEAlgorithm: aws:kms
+            BucketKeyEnabled: True
       VersioningConfiguration:
         Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+        BlockPublicPolicy: True
+        IgnorePublicAcls: True
+        RestrictPublicBuckets: True
       Tags:
         - Key: Name
           Value: !Ref CloudFormationTemplateBucketName
@@ -29,4 +35,11 @@ Resources:
           Value: !Ref ProjectName
         - Key: Environment
           Value: !Ref Environment
-    
+
+# aws cloudformation create-stack --stack-name cfn-template-s3-store --template-body file://cloudformatin-template-s3-store.yml \
+#   --parameters ParameterKey=CloudFormationTemplateBucketName,ParameterValue=cloudformatin-template-s3-store ParameterKey=ProjectName,ParameterValue=suzukis \
+#   ParameterKey=Environment,ParameterValue=prod
+
+# aws cloudformation update-stack --stack-name cfn-template-s3-store --template-body file://S3/cloudformatin-template-s3-store.yml \
+# --parameters ParameterKey=CloudFormationTemplateBucketName,ParameterValue=cloudformatin-template-s3-store ParameterKey=ProjectName,ParameterValue=suzukis \
+# ParameterKey=Environment,ParameterValue=prod
