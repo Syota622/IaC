@@ -1,0 +1,402 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: 
+  VPC and Subnet Create
+
+Metadata: 
+  "AWS::CloudFormation::Interface": 
+    ParameterGroups: 
+      - Label: 
+          default: "Project Name Prefix"
+        Parameters: 
+          - ProjectName
+      - Label: 
+          default: "Network Configuration"
+        Parameters: 
+          - VpcCidr
+          - PublicSubnetCidrA
+          - PublicSubnetCidrC
+          - PublicSubnetCidrD
+          - PrivateSubnetCidrA
+          - PrivateSubnetCidrC
+          - PrivateSubnetCidrD
+    ParameterLabels: 
+      VpcCidr: 
+        default: "VPC Cidr"
+      PublicSubnetCidrA: 
+        default: "PublicSubnetA Cidr"
+      PublicSubnetCidrC: 
+        default: "PublicSubnetC Cidr"
+      PublicSubnetCidrC: 
+        default: "PublicSubnetD Cidr"
+      PrivateSubnetCidrA: 
+        default: "PrivateSubnetA Cidr"
+      PrivateSubnetCidrC: 
+        default: "PrivateSubnetC Cidr"
+      PrivateSubnetCidrD: 
+        default: "PrivateSubnetD Cidr"
+
+# ------------------------------------------------------------#
+# Input Parameters
+# ------------------------------------------------------------# 
+Parameters:
+  ProjectName:
+    Type: String
+
+  VpcCidr:
+    Type: String
+    Default: "10.1.0.0/16"
+
+  PublicSubnetCidrA:
+    Type: String
+    Default: "10.1.10.0/24"
+
+  PublicSubnetCidrC:
+    Type: String
+    Default: "10.1.20.0/24"
+
+  PublicSubnetCidrD:
+    Type: String
+    Default: "10.1.30.0/24"
+
+  PrivateSubnetCidrA:
+    Type: String
+    Default: "10.1.100.0/24"
+
+  PrivateSubnetCidrC:
+    Type: String
+    Default: "10.1.200.0/24"
+
+  PrivateSubnetCidrD:
+    Type: String
+    Default: "10.1.300.0/24"
+
+  Environment:
+    Type: String
+    Description: Environment Setting
+
+Resources: 
+# ------------------------------------------------------------#
+#  VPC NetWork
+# ------------------------------------------------------------#
+# VPC Create
+  VPC: 
+    Type: "AWS::EC2::VPC"
+    Properties: 
+      CidrBlock: !Ref VpcCidr
+      EnableDnsSupport: "true"
+      EnableDnsHostnames: "true"
+      InstanceTenancy: default
+      Tags: 
+        - Key: Name
+          Value: !Sub "${ProjectName}-vpc-${Environment}"
+
+# InternetGateway Create
+  InternetGateway: 
+    Type: "AWS::EC2::InternetGateway"
+    Properties: 
+      Tags: 
+        - Key: Name
+          Value: !Sub "${ProjectName}-igw-${Environment}"
+
+# IGW Attach
+  InternetGatewayAttachment: 
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties: 
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC 
+
+# ------------------------------------------------------------#
+#  Subnet
+# ------------------------------------------------------------#          
+# Public SubnetA Create
+  PublicSubnetA: 
+    Type: "AWS::EC2::Subnet"
+    Properties: 
+      AvailabilityZone: "ap-northeast-1a"
+      CidrBlock: !Ref PublicSubnetCidrA
+      VpcId: !Ref VPC 
+      Tags: 
+        - Key: Name
+          Value: !Sub "${ProjectName}-public-subnet-a-${Environment}"
+
+# Public SubnetC Create
+  PublicSubnetC: 
+    Type: "AWS::EC2::Subnet"
+    Properties: 
+      AvailabilityZone: "ap-northeast-1c"
+      CidrBlock: !Ref PublicSubnetCidrC
+      VpcId: !Ref VPC 
+      Tags: 
+        - Key: Name
+          Value: !Sub "${ProjectName}-public-subnet-c-${Environment}"
+
+# Public SubnetD Create
+  PublicSubnetD: 
+    Type: "AWS::EC2::Subnet"
+    Properties: 
+      AvailabilityZone: "ap-northeast-1d"
+      CidrBlock: !Ref PublicSubnetCidrD
+      VpcId: !Ref VPC 
+      Tags: 
+        - Key: Name
+          Value: !Sub "${ProjectName}-public-subnet-d-${Environment}"
+
+# Private SubnetA Create
+  PrivateSubnetA: 
+    Type: "AWS::EC2::Subnet"
+    Properties: 
+      AvailabilityZone: "ap-northeast-1a"
+      CidrBlock: !Ref PrivateSubnetCidrA
+      VpcId: !Ref VPC 
+      Tags: 
+        - Key: Name
+          Value: !Sub "${ProjectName}-private-subnet-a-${Environment}"
+
+# Private SubnetC Create
+  PrivateSubnetC: 
+    Type: "AWS::EC2::Subnet"
+    Properties: 
+      AvailabilityZone: "ap-northeast-1c"
+      CidrBlock: !Ref PrivateSubnetCidrC
+      VpcId: !Ref VPC 
+      Tags: 
+        - Key: Name
+          Value: !Sub "${ProjectName}-private-subnet-c-${Environment}"
+
+# Private SubnetD Create
+  PrivateSubnetD: 
+    Type: "AWS::EC2::Subnet"
+    Properties: 
+      AvailabilityZone: "ap-northeast-1d"
+      CidrBlock: !Ref PrivateSubnetCidrD
+      VpcId: !Ref VPC 
+      Tags: 
+        - Key: Name
+          Value: !Sub "${ProjectName}-Private-subnet-d-${Environment}"
+
+
+# ------------------------------------------------------------#
+#  RouteTable
+# ------------------------------------------------------------#          
+# Public RouteTableA Create
+  PublicRouteTableA: 
+    Type: "AWS::EC2::RouteTable"
+    Properties: 
+      VpcId: !Ref VPC 
+      Tags: 
+        - Key: Name
+          Value: !Sub "${ProjectName}-public-route-a-${Environment}"
+
+# Public RouteTableC Create
+  PublicRouteTableC: 
+    Type: "AWS::EC2::RouteTable"
+    Properties: 
+      VpcId: !Ref VPC 
+      Tags: 
+        - Key: Name
+          Value: !Sub "${ProjectName}-public-route-c-${Environment}"
+
+# Public RouteTableD Create
+  PublicRouteTableD: 
+    Type: "AWS::EC2::RouteTable"
+    Properties: 
+      VpcId: !Ref VPC 
+      Tags: 
+        - Key: Name
+          Value: !Sub "${ProjectName}-public-route-d-${Environment}"
+
+# Private RouteTableA Create
+  PrivateRouteTableA: 
+    Type: "AWS::EC2::RouteTable"
+    Properties: 
+      VpcId: !Ref VPC 
+      Tags: 
+        - Key: Name
+          Value: !Sub "${ProjectName}-private-route-a-${Environment}"
+
+# Private RouteTableC Create
+  PrivateRouteTableC: 
+    Type: "AWS::EC2::RouteTable"
+    Properties: 
+      VpcId: !Ref VPC 
+      Tags: 
+        - Key: Name
+          Value: !Sub "${ProjectName}-private-route-c-${Environment}"
+
+# Private RouteTableD Create
+  PrivateRouteTableD: 
+    Type: "AWS::EC2::RouteTable"
+    Properties: 
+      VpcId: !Ref VPC 
+      Tags: 
+        - Key: Name
+          Value: !Sub "${ProjectName}-Private-route-d-${Environment}"
+
+# ------------------------------------------------------------#
+# Routing
+# ------------------------------------------------------------# 
+# PublicRouteA Create
+  PublicRouteA: 
+    Type: "AWS::EC2::Route"
+    Properties: 
+      RouteTableId: !Ref PublicRouteTableA 
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId: !Ref InternetGateway 
+
+# PublicRouteC Create
+  PublicRouteC: 
+    Type: "AWS::EC2::Route"
+    Properties: 
+      RouteTableId: !Ref PublicRouteTableC 
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId: !Ref InternetGateway 
+
+# PublicRouteD Create
+  PublicRouteD: 
+    Type: "AWS::EC2::Route"
+    Properties: 
+      RouteTableId: !Ref PublicRouteTableD
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId: !Ref InternetGateway 
+
+# ------------------------------------------------------------#
+# RouteTable Associate
+# ------------------------------------------------------------# 
+# PublicRouteTable Associate SubnetA
+  PublicSubnetARouteTableAssociationA: 
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties: 
+      SubnetId: !Ref PublicSubnetA 
+      RouteTableId: !Ref PublicRouteTableA
+
+# PublicRouteTable Associate SubnetC
+  PublicSubnetCRouteTableAssociationC: 
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties: 
+      SubnetId: !Ref PublicSubnetC 
+      RouteTableId: !Ref PublicRouteTableC
+
+# PublicRouteTable Associate SubnetD
+  PublicSubnetDRouteTableAssociationD: 
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties: 
+      SubnetId: !Ref PublicSubnetD
+      RouteTableId: !Ref PublicRouteTableD
+
+# PrivateRouteTable Associate SubnetA
+  PrivateSubnetARouteTableAssociationA: 
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties: 
+      SubnetId: !Ref PrivateSubnetA
+      RouteTableId: !Ref PrivateRouteTableA 
+
+# PrivateRouteTable Associate SubnetC
+  PrivateSubnetCRouteTableAssociationC: 
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties: 
+      SubnetId: !Ref PrivateSubnetC
+      RouteTableId: !Ref PrivateRouteTableC
+
+# PrivateRouteTable Associate SubnetD
+  PrivateSubnetDRouteTableAssociationD: 
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties: 
+      SubnetId: !Ref PrivateSubnetD
+      RouteTableId: !Ref PrivateRouteTableD
+
+# ------------------------------------------------------------#
+# Output Parameters
+# ------------------------------------------------------------#                
+Outputs:
+# VPC
+  VPC:
+    Value: !Ref VPC
+    Export:
+      Name: !Sub "${ProjectName}-vpc-${Environment}"
+
+  VpcCidr:
+    Value: !Ref VpcCidr
+    Export:
+      Name: !Sub "${ProjectName}-vpc-cidr-${Environment}"
+
+# Subnet
+  PublicSubnetA:
+    Value: !Ref PublicSubnetA
+    Export:
+      Name: !Sub "${ProjectName}-public-subnet-a-${Environment}"
+
+  PublicSubnetCidrA:
+    Value: !Ref PublicSubnetCidrA
+    Export:
+      Name: !Sub "${ProjectName}-public-subnet-a-cidr-${Environment}"
+
+  PublicSubnetC:
+    Value: !Ref PublicSubnetC
+    Export:
+      Name: !Sub "${ProjectName}-public-subnet-c-${Environment}"
+
+  PublicSubnetCidrC:
+    Value: !Ref PublicSubnetCidrC
+    Export:
+      Name: !Sub "${ProjectName}-public-subnet-c-cidr-${Environment}"
+
+  PrivateSubnetA:
+    Value: !Ref PrivateSubnetA
+    Export:
+      Name: !Sub "${ProjectName}-private-subnet-a-${Environment}"
+
+  PrivateSubnetCidrA:
+    Value: !Ref PrivateSubnetCidrA
+    Export:
+      Name: !Sub "${ProjectName}-private-subnet-a-cidr-${Environment}"
+
+  PrivateSubnetC:
+    Value: !Ref PrivateSubnetC
+    Export:
+      Name: !Sub "${ProjectName}-private-subnet-c-${Environment}"
+
+  PrivateSubnetCidrC:
+    Value: !Ref PrivateSubnetCidrC
+    Export:
+      Name: !Sub "${ProjectName}-private-subnet-c-cidr-${Environment}"
+
+  PrivateSubnetD:
+    Value: !Ref PrivateSubnetD
+    Export:
+      Name: !Sub "${ProjectName}-private-subnet-d-${Environment}"
+
+  PrivateSubnetCidrD:
+    Value: !Ref PrivateSubnetCidrD
+    Export:
+      Name: !Sub "${ProjectName}-private-subnet-d-cidr-${Environment}"
+
+# Route
+  PublicRouteTableA:
+    Value: !Ref PublicRouteTableA
+    Export:
+      Name: !Sub "${ProjectName}-public-route-a-${Environment}"
+
+  PublicRouteTableC:
+    Value: !Ref PublicRouteTableC
+    Export:
+      Name: !Sub "${ProjectName}-public-route-c-${Environment}"
+
+  PublicRouteTableD:
+    Value: !Ref PublicRouteTableD
+    Export:
+      Name: !Sub "${ProjectName}-public-route-d-${Environment}"
+
+  PrivateRouteTableA:
+    Value: !Ref PrivateRouteTableA
+    Export:
+      Name: !Sub "${ProjectName}-private-route-a-${Environment}"
+
+  PrivateRouteTableC:
+    Value: !Ref PrivateRouteTableC
+    Export:
+      Name: !Sub "${ProjectName}-private-route-c-${Environment}"
+
+  PrivateRouteTableD:
+    Value: !Ref PrivateRouteTableD
+    Export:
+      Name: !Sub "${ProjectName}-private-route-d-${Environment}"
