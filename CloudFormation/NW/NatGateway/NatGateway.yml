@@ -1,0 +1,124 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: PrivateSubnet 
+
+Parameters: 
+  NestProjectName:
+    Type: String
+  NestEnvironment:
+    Type: String
+  NestVpcId:
+    Type: String
+  NestNATGatewayCreateA:
+    Type: String
+  NestNATGatewayCreateC:
+    Type: String
+  NestNATGatewayCreateD:
+    Type: String
+  NestPublicSubnetA:
+    Type: String
+  NestPublicSubnetC:
+    Type: String
+  NestPublicSubnetD:
+    Type: String
+  NestPrivateRouteTableA:
+    Type: String
+  NestPrivateRouteTableC:
+    Type: String
+  NestPrivateRouteTableD:
+    Type: String
+
+# ------------------------------------------------------------#
+# Conditions
+# ------------------------------------------------------------# 
+Conditions: 
+# NatGateway ture or false
+  NestIsCreateNATGatewayA: !Equals [ !Ref NestNATGatewayCreateA, true ]
+  NestIsCreateNATGatewayC: !Equals [ !Ref NestNATGatewayCreateC, true ]
+  NestIsCreateNATGatewayD: !Equals [ !Ref NestNATGatewayCreateD, true ]
+
+Resources:
+# ------------------------------------------------------------#
+#  NAT Gateway
+# ------------------------------------------------------------#
+# NATGatewayA Create
+  NestNATGatewayA:
+    Type: AWS::EC2::NatGateway
+    Condition: NestIsCreateNATGatewayA
+    Properties: 
+      AllocationId: !GetAtt NestNATGatewayEIPA.AllocationId 
+      SubnetId: !Ref NestPublicSubnetA
+      Tags: 
+        - Key: Name
+          Value: !Sub "${NestProjectName}-natgw-a-${NestEnvironment}"
+
+# NATGatewayA For EIP Create
+  NestNATGatewayEIPA:
+    Type: AWS::EC2::EIP
+    Condition: NestIsCreateNATGatewayA
+    Properties: 
+      Domain: vpc
+
+# PrivateRouteA Update
+  NestPrivateRouteA:
+    Type: AWS::EC2::Route
+    Condition: NestIsCreateNATGatewayA
+    Properties: 
+      RouteTableId: !Ref NestPrivateRouteTableA
+      DestinationCidrBlock: "0.0.0.0/0"
+      NatGatewayId: !Ref NestNATGatewayA
+
+# NATGatewayC Create
+  NestNATGatewayC:
+    Type: AWS::EC2::NatGateway
+    Condition: NestIsCreateNATGatewayC
+    Properties: 
+      AllocationId: !GetAtt NestNATGatewayEIPC.AllocationId 
+      SubnetId: !Ref NestPublicSubnetC
+      Tags: 
+        - Key: Name
+          Value: !Sub "${NestProjectName}-natgw-c-${NestEnvironment}"
+
+# NATGatewayC For EIP Create
+  NestNATGatewayEIPC:
+    Type: AWS::EC2::EIP
+    Condition: NestIsCreateNATGatewayC
+    Properties: 
+      Domain: vpc
+
+# PrivateRouteC Update
+  NestPrivateRouteC:
+    Type: AWS::EC2::Route
+    Condition: NestIsCreateNATGatewayC
+    Properties: 
+      RouteTableId: !Ref NestPrivateRouteTableC
+      DestinationCidrBlock: "0.0.0.0/0"
+      NatGatewayId: !Ref NestNATGatewayC
+
+# NATGatewayD Create
+  NestNATGatewayD:
+    Type: AWS::EC2::NatGateway
+    Condition: NestIsCreateNATGatewayD
+    Properties: 
+      AllocationId: !GetAtt NestNATGatewayEIPD.AllocationId 
+      SubnetId: !Ref NestPublicSubnetD
+      Tags: 
+        - Key: Name
+          Value: !Sub "${NestProjectName}-natgw-d-${NestEnvironment}"
+
+# NATGatewayD For EIP Create
+  NestNATGatewayEIPD:
+    Type: AWS::EC2::EIP
+    Condition: NestIsCreateNATGatewayD
+    Properties: 
+      Domain: vpc
+
+# PrivateRouteD Update
+  NestPrivateRouteD:
+    Type: AWS::EC2::Route
+    Condition: NestIsCreateNATGatewayD
+    Properties: 
+      RouteTableId: !Ref NestPrivateRouteTableD
+      DestinationCidrBlock: "0.0.0.0/0"
+      NatGatewayId: !Ref NestNATGatewayD
+
+# Outputs:

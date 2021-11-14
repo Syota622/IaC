@@ -2,28 +2,25 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: PrivateRouteTable 
 
 Parameters: 
+  NestProjectName:
+    Type: String
+  NestEnvironment:
+    Type: String
   NestVpcId:
     Type: String
-    
   NestInternetGateway:
     Type: String
-
   NestPublicSubnetA:
     Type: String
-
   NestPublicSubnetC:
     Type: String
-
   NestPublicSubnetD:
     Type: String
 
-  NestProjectName:
-    Type: String
-
-  NestEnvironment:
-    Type: String
-
 Resources:
+# ------------------------------------------------------------#
+#  RouteTable
+# ------------------------------------------------------------#
 # Public RouteTableA Create
   NestPublicRouteTableA: 
     Type: AWS::EC2::RouteTable

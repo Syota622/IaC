@@ -2,13 +2,11 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: vpc 
 
 Parameters: 
-  NestVpcId:
-    Type: String
-
   NestProjectName:
     Type: String
-
   NestEnvironment:
+    Type: String
+  NestVpcId:
     Type: String
 
 Resources:

@@ -2,25 +2,23 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: PublicSubnet 
 
 Parameters: 
+  NestProjectName:
+    Type: String
+  NestEnvironment:
+    Type: String
   NestVpcId:
     Type: String
-
   NestPublicSubnetCidrA:
     Type: String
-
   NestPublicSubnetCidrC:
     Type: String
-
   NestPublicSubnetCidrD:
     Type: String
 
-  NestProjectName:
-    Type: String
-
-  NestEnvironment:
-    Type: String
-
 Resources:
+# ------------------------------------------------------------#
+#  Subnet
+# ------------------------------------------------------------#
 # Public SubnetA Create
   NestPublicSubnetA: 
     Type: AWS::EC2::Subnet

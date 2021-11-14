@@ -14,7 +14,13 @@ aws cloudformation package --template-file ./NW/root-network.yml \
 
 ## aws cli cloudformation deploy
 aws cloudformation deploy --template-file /Users/shota/Desktop/IaC/CloudFormation/NW/package/packaged.yml \
-  --stack-name suzukis-network --parameter-overrides ProjectName=suzukis Environment=prod
+  --stack-name suzukis-network --parameter-overrides ProjectName=suzukis Environment=prod IsCreateNATGatewayA=false \
+	IsCreateNATGatewayC=false IsCreateNATGatewayD=false
 
 ## ROLLBACK_COMPLETE 削除
 aws cloudformation 
+
+## Git操作 マージ
+$ git checkout main
+$ git merge ${branch}
+$ git push

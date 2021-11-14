@@ -1,12 +1,12 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: 
-  VPC and Subnet Create
+  Network Create
 
 Metadata: 
   "AWS::CloudFormation::Interface": 
     ParameterGroups: 
       - Label: 
-          default: "Project Name Prefix"
+          default: "Project Name Configuration"
         Parameters: 
           - ProjectName
       - Label: 
@@ -19,6 +19,13 @@ Metadata:
           - PrivateSubnetCidrA
           - PrivateSubnetCidrC
           - PrivateSubnetCidrD
+      - Label: 
+          default: "NATGateway Configuration"
+        Parameters: 
+          - IsCreateNATGatewayA
+          - IsCreateNATGatewayC
+          - IsCreateNATGatewayD
+
     ParameterLabels: 
       VpcCidr: 
         default: "VPC Cidr"
@@ -34,49 +41,71 @@ Metadata:
         default: "PrivateSubnetC Cidr"
       PrivateSubnetCidrD: 
         default: "PrivateSubnetD Cidr"
+      IsCreateNATGatewayA: 
+        default: "IsCreateNATGatewayA"
+      IsCreateNATGatewayC: 
+        default: "IsCreateNATGatewayC"
+      IsCreateNATGatewayD: 
+        default: "IsCreateNATGatewayD"
 
 # ------------------------------------------------------------#
 # Input Parameters
 # ------------------------------------------------------------# 
 Parameters:
+# common Variable
   ProjectName:
     Type: String
-
+  Environment:
+    Type: String
+    AllowedValues:
+      - dev
+      - stg
+      - prod
+# Vpc Network Variable
   VpcCidr:
     Type: String
     Default: "10.1.0.0/16"
-
   PublicSubnetCidrA:
     Type: String
     Default: "10.1.0.0/24"
-
   PublicSubnetCidrC:
     Type: String
     Default: "10.1.2.0/24"
-
   PublicSubnetCidrD:
     Type: String
     Default: "10.1.4.0/24"
-
   PrivateSubnetCidrA:
     Type: String
     Default: "10.1.1.0/24"
-
   PrivateSubnetCidrC:
     Type: String
     Default: "10.1.3.0/24"
-
   PrivateSubnetCidrD:
     Type: String
     Default: "10.1.5.0/24"
-
-  Environment:
+# NatGateway Variable
+  IsCreateNATGatewayA: 
+    Default: false
     Type: String
-    Description: Environment Setting
+    AllowedValues: 
+      - true
+      - false
+  IsCreateNATGatewayC:
+    Default: false
+    Type: String
+    AllowedValues:
+      - true
+      - false
+  IsCreateNATGatewayD:
+    Default: false
+    Type: String
+    AllowedValues:
+      - true
+      - false
 
 Resources: 
 # ------------------------------------------------------------#
-#  VPC NetWork
+#  VPC
 # ------------------------------------------------------------#
 # VPC Create
   Vpc:
@@ -99,7 +128,7 @@ Resources:
         NestEnvironment: !Ref Environment
 
 # ------------------------------------------------------------#
-#  Subnet
+#  Subnet AZ:a,c,d
 # ------------------------------------------------------------#
 # Public SubnetA SubnetC SubnetD Create
   PublicSubnet: 
@@ -128,7 +157,7 @@ Resources:
         NestEnvironment: !Ref Environment
 
 # ------------------------------------------------------------#
-#  RouteTable
+#  RouteTable AZ:a,c,d
 # ------------------------------------------------------------#
 # Public RouteTableA RouteTableC RouteTableD Create
   PublicRouteTable: 
@@ -158,6 +187,28 @@ Resources:
         NestEnvironment: !Ref Environment
 
 # ------------------------------------------------------------#
+#  NAT Gateway AZ:a,c,d
+# ------------------------------------------------------------#
+# NATGateway Create
+  NATGateway: 
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./NatGateway/NatGateway.yml
+      Parameters:
+        NestVpcId: !GetAtt Vpc.Outputs.NestVpcId
+        NestNATGatewayCreateA: !Ref IsCreateNATGatewayA
+        NestNATGatewayCreateC: !Ref IsCreateNATGatewayC
+        NestNATGatewayCreateD: !Ref IsCreateNATGatewayD
+        NestPublicSubnetA: !GetAtt PublicSubnet.Outputs.NestPublicSubnetA
+        NestPublicSubnetC: !GetAtt PublicSubnet.Outputs.NestPublicSubnetC
+        NestPublicSubnetD: !GetAtt PublicSubnet.Outputs.NestPublicSubnetD
+        NestPrivateRouteTableA: !GetAtt PrivateRouteTable.Outputs.NestPrivateRouteTableA
+        NestPrivateRouteTableC: !GetAtt PrivateRouteTable.Outputs.NestPrivateRouteTableC
+        NestPrivateRouteTableD: !GetAtt PrivateRouteTable.Outputs.NestPrivateRouteTableD
+        NestProjectName: !Ref ProjectName
+        NestEnvironment: !Ref Environment
+
+# ------------------------------------------------------------#
 # Output Parameters
 # ------------------------------------------------------------#                
 # Outputs:
@@ -168,8 +219,9 @@ Resources:
 # ## aws cli cloudformation package
 # aws cloudformation package --template-file ./NW/root-network.yml \
 #   --s3-bucket suzukis-cloudformatin-template-s3-store-prod \
-# --output-template-file ./NW/package/packaged.yml
+#   --output-template-file ./NW/package/packaged.yml
 
 # ## aws cli cloudformation deploy
 # aws cloudformation deploy --template-file /Users/shota/Desktop/IaC/CloudFormation/NW/package/packaged.yml \
-#   --stack-name suzukis-network --parameter-overrides ProjectName=suzukis Environment=prod
+#   --stack-name suzukis-network --parameter-overrides ProjectName=suzukis Environment=prod IsCreateNATGatewayA=false \
+#   IsCreateNATGatewayC=false IsCreateNATGatewayD=false
