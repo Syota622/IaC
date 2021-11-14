@@ -1,0 +1,227 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: 
+  Network Create
+
+Metadata: 
+  "AWS::CloudFormation::Interface": 
+    ParameterGroups: 
+      - Label: 
+          default: "Project Name Configuration"
+        Parameters: 
+          - ProjectName
+      - Label: 
+          default: "Network Configuration"
+        Parameters: 
+          - VpcCidr
+          - PublicSubnetCidrA
+          - PublicSubnetCidrC
+          - PublicSubnetCidrD
+          - PrivateSubnetCidrA
+          - PrivateSubnetCidrC
+          - PrivateSubnetCidrD
+      - Label: 
+          default: "NATGateway Configuration"
+        Parameters: 
+          - IsCreateNATGatewayA
+          - IsCreateNATGatewayC
+          - IsCreateNATGatewayD
+
+    ParameterLabels: 
+      VpcCidr: 
+        default: "VPC Cidr"
+      PublicSubnetCidrA: 
+        default: "PublicSubnetA Cidr"
+      PublicSubnetCidrC: 
+        default: "PublicSubnetC Cidr"
+      PublicSubnetCidrD: 
+        default: "PublicSubnetD Cidr"
+      PrivateSubnetCidrA: 
+        default: "PrivateSubnetA Cidr"
+      PrivateSubnetCidrC: 
+        default: "PrivateSubnetC Cidr"
+      PrivateSubnetCidrD: 
+        default: "PrivateSubnetD Cidr"
+      IsCreateNATGatewayA: 
+        default: "IsCreateNATGatewayA"
+      IsCreateNATGatewayC: 
+        default: "IsCreateNATGatewayC"
+      IsCreateNATGatewayD: 
+        default: "IsCreateNATGatewayD"
+
+# ------------------------------------------------------------#
+# Input Parameters
+# ------------------------------------------------------------# 
+Parameters:
+# common Variable
+  ProjectName:
+    Type: String
+  Environment:
+    Type: String
+    AllowedValues:
+      - dev
+      - stg
+      - prod
+# Vpc Network Variable
+  VpcCidr:
+    Type: String
+    Default: "10.1.0.0/16"
+  PublicSubnetCidrA:
+    Type: String
+    Default: "10.1.0.0/24"
+  PublicSubnetCidrC:
+    Type: String
+    Default: "10.1.2.0/24"
+  PublicSubnetCidrD:
+    Type: String
+    Default: "10.1.4.0/24"
+  PrivateSubnetCidrA:
+    Type: String
+    Default: "10.1.1.0/24"
+  PrivateSubnetCidrC:
+    Type: String
+    Default: "10.1.3.0/24"
+  PrivateSubnetCidrD:
+    Type: String
+    Default: "10.1.5.0/24"
+# NatGateway Variable
+  IsCreateNATGatewayA: 
+    Default: false
+    Type: String
+    AllowedValues: 
+      - true
+      - false
+  IsCreateNATGatewayC:
+    Default: false
+    Type: String
+    AllowedValues:
+      - true
+      - false
+  IsCreateNATGatewayD:
+    Default: false
+    Type: String
+    AllowedValues:
+      - true
+      - false
+
+Resources: 
+# ------------------------------------------------------------#
+#  VPC
+# ------------------------------------------------------------#
+# VPC Create
+  Vpc:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./Vpc/vpc.yml
+      Parameters:
+        NestVpcCidr: !Ref VpcCidr
+        NestProjectName: !Ref ProjectName
+        NestEnvironment: !Ref Environment
+
+# InternetGateway Create/Attach
+  InternetGateway: 
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./InternetGateway/InternetGateway.yml
+      Parameters:
+        NestVpcId: !GetAtt Vpc.Outputs.NestVpcId
+        NestProjectName: !Ref ProjectName
+        NestEnvironment: !Ref Environment
+
+# ------------------------------------------------------------#
+#  Subnet AZ:a,c,d
+# ------------------------------------------------------------#
+# Public SubnetA SubnetC SubnetD Create
+  PublicSubnet: 
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./Subnet/PublicSubnet.yml
+      Parameters:
+        NestVpcId: !GetAtt Vpc.Outputs.NestVpcId
+        NestPublicSubnetCidrA: !Ref PublicSubnetCidrA
+        NestPublicSubnetCidrC: !Ref PublicSubnetCidrC
+        NestPublicSubnetCidrD: !Ref PublicSubnetCidrD
+        NestProjectName: !Ref ProjectName
+        NestEnvironment: !Ref Environment
+
+# Private SubnetA SubnetC SubnetD Create
+  PrivateSubnet: 
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./Subnet/PrivateSubnet.yml
+      Parameters:
+        NestVpcId: !GetAtt Vpc.Outputs.NestVpcId
+        NestPrivateSubnetCidrA: !Ref PrivateSubnetCidrA
+        NestPrivateSubnetCidrC: !Ref PrivateSubnetCidrC
+        NestPrivateSubnetCidrD: !Ref PrivateSubnetCidrD
+        NestProjectName: !Ref ProjectName
+        NestEnvironment: !Ref Environment
+
+# ------------------------------------------------------------#
+#  RouteTable AZ:a,c,d
+# ------------------------------------------------------------#
+# Public RouteTableA RouteTableC RouteTableD Create
+  PublicRouteTable: 
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./RouteTable/PublicRouteTable.yml
+      Parameters:
+        NestVpcId: !GetAtt Vpc.Outputs.NestVpcId
+        NestInternetGateway: !GetAtt InternetGateway.Outputs.NestInternetGateway
+        NestPublicSubnetA: !GetAtt PublicSubnet.Outputs.NestPublicSubnetA
+        NestPublicSubnetC: !GetAtt PublicSubnet.Outputs.NestPublicSubnetC
+        NestPublicSubnetD: !GetAtt PublicSubnet.Outputs.NestPublicSubnetD
+        NestProjectName: !Ref ProjectName
+        NestEnvironment: !Ref Environment
+
+# Private RouteTableA RouteTableC RouteTableD Create
+  PrivateRouteTable: 
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./RouteTable/PrivateRouteTable.yml
+      Parameters:
+        NestVpcId: !GetAtt Vpc.Outputs.NestVpcId
+        NestPrivateSubnetA: !GetAtt PrivateSubnet.Outputs.NestPrivateSubnetA
+        NestPrivateSubnetC: !GetAtt PrivateSubnet.Outputs.NestPrivateSubnetC
+        NestPrivateSubnetD: !GetAtt PrivateSubnet.Outputs.NestPrivateSubnetD
+        NestProjectName: !Ref ProjectName
+        NestEnvironment: !Ref Environment
+
+# ------------------------------------------------------------#
+#  NAT Gateway AZ:a,c,d
+# ------------------------------------------------------------#
+# NATGateway Create
+  NATGateway: 
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./NatGateway/NatGateway.yml
+      Parameters:
+        NestVpcId: !GetAtt Vpc.Outputs.NestVpcId
+        NestNATGatewayCreateA: !Ref IsCreateNATGatewayA
+        NestNATGatewayCreateC: !Ref IsCreateNATGatewayC
+        NestNATGatewayCreateD: !Ref IsCreateNATGatewayD
+        NestPublicSubnetA: !GetAtt PublicSubnet.Outputs.NestPublicSubnetA
+        NestPublicSubnetC: !GetAtt PublicSubnet.Outputs.NestPublicSubnetC
+        NestPublicSubnetD: !GetAtt PublicSubnet.Outputs.NestPublicSubnetD
+        NestPrivateRouteTableA: !GetAtt PrivateRouteTable.Outputs.NestPrivateRouteTableA
+        NestPrivateRouteTableC: !GetAtt PrivateRouteTable.Outputs.NestPrivateRouteTableC
+        NestPrivateRouteTableD: !GetAtt PrivateRouteTable.Outputs.NestPrivateRouteTableD
+        NestProjectName: !Ref ProjectName
+        NestEnvironment: !Ref Environment
+
+# ------------------------------------------------------------#
+# Output Parameters
+# ------------------------------------------------------------#                
+# Outputs:
+
+# ------------------------------------------------------------#
+# aws cli
+# ------------------------------------------------------------#     
+# ## aws cli cloudformation package
+# aws cloudformation package --template-file ./NW/root-network.yml \
+#   --s3-bucket suzukis-cloudformatin-template-s3-store-prod \
+#   --output-template-file ./NW/package/packaged.yml
+
+# ## aws cli cloudformation deploy
+# aws cloudformation deploy --template-file /Users/shota/Desktop/IaC/CloudFormation/NW/package/packaged.yml \
+#   --stack-name suzukis-network --parameter-overrides ProjectName=suzukis Environment=prod IsCreateNATGatewayA=false \
+#   IsCreateNATGatewayC=false IsCreateNATGatewayD=false
