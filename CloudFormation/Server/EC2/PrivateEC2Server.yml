@@ -1,0 +1,70 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: IAMRole Create 
+
+Parameters: 
+  NestProjectName:
+    Type: String
+  NestEnvironment:
+    Type: String
+  NestEC2KeyPair:
+    Type: String
+  NestEC2PrivateAmazonLinux2:
+    Type: String
+  NestInstanceTypeAmazonLinux2:
+    Type: String
+  NestAmazonLinux2ImageID:
+    Type: String
+  NestIAMRoleAdminInstanceProfile:
+    Type: String
+  NestSecurityGroupEC2RDS:
+    Type: String
+
+Conditions: 
+# ------------------------------------------------------------#
+# Conditions
+# ------------------------------------------------------------# 
+# EC2 ture or false
+  NestEC2PrivateAmazonLinux2Conditions: !Equals [ !Ref NestEC2PrivateAmazonLinux2, true ]
+
+Resources: 
+# ------------------------------------------------------------#
+#  Private EC2 Server
+# ------------------------------------------------------------#
+  NestEC2PrivateServer:
+    Type: AWS::EC2::Instance
+    Condition: NestEC2PrivateAmazonLinux2Conditions
+    Properties:
+      IamInstanceProfile: !Ref NestIAMRoleAdminInstanceProfile
+      ImageId: !Ref NestAmazonLinux2ImageID
+      KeyName: !Ref NestEC2KeyPair
+      InstanceType: !Ref NestInstanceTypeAmazonLinux2
+      Tenancy: "default"
+      Monitoring: false
+      DisableApiTermination: false
+      InstanceInitiatedShutdownBehavior: "stop"
+      CreditSpecification: 
+        CPUCredits: "standard"
+      EbsOptimized: false
+      Tags: 
+      - 
+        Key: "Name"
+        Value: !Sub ${NestProjectName}-private-instance-${NestEnvironment}
+      BlockDeviceMappings: 
+      - 
+        DeviceName: "/dev/xvda"
+        Ebs: 
+          VolumeSize: 12
+          DeleteOnTermination: true
+          VolumeType: "gp2"
+      NetworkInterfaces: 
+      - 
+        DeviceIndex: 0
+        Description: "Primary network interface"
+        DeleteOnTermination: true
+        SubnetId: 
+          Fn::ImportValue: !Sub ${NestProjectName}-private-subnet-a-${NestEnvironment}
+        Ipv6AddressCount: 0
+        AssociatePublicIpAddress: false
+        GroupSet: 
+          - !Ref NestSecurityGroupEC2RDS
+    

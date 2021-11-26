@@ -1,0 +1,117 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: IAMRole Create 
+
+Parameters: 
+  NestProjectName:
+    Type: String
+  NestEnvironment:
+    Type: String
+  NestEC2KeyPair:
+    Type: String
+  NestIAMRoleAdminInstanceProfile:
+    Type: String
+  NestSecurityGroupEC2RDS:
+    Type: String
+  NestEC2PublicAmazonLinux2:
+    Type: String
+  NestInstanceTypeAmazonLinux2:
+    Type: String
+  NestAmazonLinux2ImageID:
+    Type: String
+  NestEC2Ubuntu20:
+    Type: String
+  NestInstanceTypeUbuntu20:
+    Type: String
+  NestUbuntu20ImageID:
+    Type: String
+    
+Conditions: 
+# ------------------------------------------------------------#
+# Conditions
+# ------------------------------------------------------------# 
+# EC2 ture or false
+  NestEC2PublicAmazonLinux2Conditions: !Equals [ !Ref NestEC2PublicAmazonLinux2, true ]
+  NestEC2Ubuntu20Conditions: !Equals [ !Ref NestEC2Ubuntu20, true ]
+
+Resources: 
+# ------------------------------------------------------------#
+#  Public EC2 Server
+# ------------------------------------------------------------#
+  NestEC2PublicServer:
+    Type: AWS::EC2::Instance
+    Condition: NestEC2PublicAmazonLinux2Conditions
+    Properties:
+      IamInstanceProfile: !Ref NestIAMRoleAdminInstanceProfile
+      ImageId: !Ref NestAmazonLinux2ImageID
+      KeyName: !Ref NestEC2KeyPair
+      InstanceType: !Ref NestInstanceTypeAmazonLinux2
+      Tenancy: "default"
+      Monitoring: false
+      DisableApiTermination: false
+      InstanceInitiatedShutdownBehavior: "stop"
+      CreditSpecification: 
+        CPUCredits: "standard"
+      EbsOptimized: false
+      Tags: 
+      - 
+        Key: "Name"
+        Value: !Sub ${NestProjectName}-public-instance-${NestEnvironment}
+      BlockDeviceMappings: 
+      - 
+        DeviceName: "/dev/xvda"
+        Ebs: 
+          VolumeSize: 12
+          DeleteOnTermination: true
+          VolumeType: "gp2"
+      NetworkInterfaces: 
+      - 
+        DeviceIndex: 0
+        Description: "Primary network interface"
+        DeleteOnTermination: true
+        SubnetId: 
+          Fn::ImportValue: !Sub ${NestProjectName}-public-subnet-a-${NestEnvironment}
+        Ipv6AddressCount: 0
+        AssociatePublicIpAddress: true
+        GroupSet: 
+          - !Ref NestSecurityGroupEC2RDS
+
+# ------------------------------------------------------------#
+#  EC2 Ubuntu20
+# ------------------------------------------------------------#
+  NestUbuntuServer:
+    Type: AWS::EC2::Instance
+    Condition: NestEC2Ubuntu20Conditions
+    Properties:
+      IamInstanceProfile: !Ref NestIAMRoleAdminInstanceProfile
+      ImageId: !Ref NestUbuntu20ImageID
+      KeyName: !Ref NestEC2KeyPair
+      InstanceType: !Ref NestInstanceTypeUbuntu20
+      Tenancy: "default"
+      Monitoring: false
+      DisableApiTermination: false
+      InstanceInitiatedShutdownBehavior: "stop"
+      CreditSpecification: 
+        CPUCredits: "standard"
+      EbsOptimized: false
+      Tags: 
+      - 
+        Key: "Name"
+        Value: !Sub ${NestProjectName}-public-instance-${NestEnvironment}
+      BlockDeviceMappings: 
+      - 
+        DeviceName: "/dev/xvda"
+        Ebs: 
+          VolumeSize: 12
+          DeleteOnTermination: true
+          VolumeType: "gp2"
+      NetworkInterfaces: 
+      - 
+        DeviceIndex: 0
+        Description: "Primary network interface"
+        DeleteOnTermination: true
+        SubnetId: 
+          Fn::ImportValue: !Sub ${NestProjectName}-public-subnet-a-${NestEnvironment}
+        Ipv6AddressCount: 0
+        AssociatePublicIpAddress: true
+        GroupSet: 
+          - !Ref NestSecurityGroupEC2RDS

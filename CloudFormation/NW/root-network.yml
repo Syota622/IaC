@@ -213,15 +213,3 @@ Resources:
 # ------------------------------------------------------------#                
 # Outputs:
 
-# ------------------------------------------------------------#
-# aws cli
-# ------------------------------------------------------------#     
-# ## aws cli cloudformation package
-# aws cloudformation package --template-file ./NW/root-network.yml \
-#   --s3-bucket suzukis-cloudformatin-template-s3-store-prod \
-#   --output-template-file ./NW/package/packaged.yml
-
-# ## aws cli cloudformation deploy
-# aws cloudformation deploy --template-file /Users/shota/Desktop/IaC/CloudFormation/NW/package/packaged.yml \
-#   --stack-name suzukis-network --parameter-overrides ProjectName=suzukis Environment=prod IsCreateNATGatewayA=false \
-#   IsCreateNATGatewayC=false IsCreateNATGatewayD=false

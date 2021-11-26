@@ -4,10 +4,8 @@ Description: vpc
 Parameters: 
   NestVpcCidr:
     Type: String
-
   NestProjectName:
     Type: String
-
   NestEnvironment:
     Type: String
 
@@ -22,16 +20,16 @@ Resources:
       InstanceTenancy: default
       Tags: 
         - Key: Name
-          Value: !Sub "${NestProjectName}-vpc-${NestEnvironment}"
+          Value: !Sub ${NestProjectName}-vpc-${NestEnvironment}
 
 Outputs:
 # VPC
   NestVpcId:
     Value: !Ref NestVpc
     Export:
-      Name: !Sub "${NestProjectName}-vpc-${NestEnvironment}"
+      Name: !Sub ${NestProjectName}-vpc-${NestEnvironment}
 
   NestVpcCidr:
     Value: !Ref NestVpcCidr
     Export:
-      Name: !Sub "${NestProjectName}-vpc-cidr-${NestEnvironment}"
+      Name: !Sub ${NestProjectName}-vpc-cidr-${NestEnvironment}

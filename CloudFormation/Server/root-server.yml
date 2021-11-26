@@ -1,0 +1,217 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: 
+  Server Create
+
+Metadata: 
+  "AWS::CloudFormation::Interface": 
+    ParameterGroups: 
+      - Label: 
+          default: "Common Variable Configuration"
+        Parameters: 
+          - ProjectName
+          - Environment
+      - Label: 
+          default: "EC2 Server"
+        Parameters: 
+          - EC2PublicAmazonLinux2
+          - EC2PrivateAmazonLinux2
+          - EC2Ubuntu
+      - Label: 
+          default: "RDS Server"
+        Parameters: 
+          - RDSPostgres
+      - Label: 
+          default: "ImageId/InstanceType"
+        Parameters: 
+          - EC2KeyPair
+          - AmazonLinux2ImageID
+          - Ubuntu20ImageID
+          - InstanceTypeAmazonLinux2
+          - InstanceTypeUbuntu20
+
+# ------------------------------------------------------------#
+# Input Parameters
+# ------------------------------------------------------------# 
+Parameters:
+# Common Variable
+  ProjectName:
+    Type: String
+  Environment:
+    Type: String
+    AllowedValues:
+      - dev
+      - stg
+      - prod
+# Server Variable
+  MasterUserPassword:
+    NoEcho: true
+    Type: String
+# EC2 Server Create
+  EC2PublicAmazonLinux2:
+    Default: false
+    Type: String
+    AllowedValues:
+      - true
+      - false
+  EC2PrivateAmazonLinux2:
+    Default: false
+    Type: String
+    AllowedValues:
+      - true
+      - false
+  EC2Ubuntu20:
+    Default: false
+    Type: String
+    AllowedValues:
+      - true
+      - false
+# RDS Server Create
+  RDSPostgres:
+    Default: false
+    Type: String
+    AllowedValues:
+      - true
+      - false
+# Server Configuration
+  EC2KeyPair:
+    Default: suzukis_key
+    Type: String
+  AmazonLinux2ImageID:
+    Default: "ami-0e60b6d05dc38ff11"
+    Type: String
+  Ubuntu20ImageID:
+    Default: "ami-036d0684fc96830ca"
+    Type: String
+  InstanceTypeAmazonLinux2:
+    Default: "t2.micro"
+    Type: String
+  InstanceTypeUbuntu20:
+    Default: "t2.micro"
+    Type: String
+
+# ------------------------------------------------------------#
+# Conditions (Server Create or Not Create)
+# ------------------------------------------------------------# 
+# Conditions
+  # EC2PublicAmazonLinux2Conditions: !Equals [ !Ref EC2PublicAmazonLinux2, true ]
+  # EC2PrivateAmazonLinux2Conditions: !Equals [ !Ref EC2PrivateAmazonLinux2, true ]
+  # EC2Ubuntu20Conditions: !Equals [ !Ref EC2Ubuntu20, true ]
+  # RDSPostgresConditions: !Equals [ !Ref RDSPostgres, true ]
+
+Resources: 
+# ------------------------------------------------------------#
+#  IAM(Role) Resource ## Admin
+# ------------------------------------------------------------#
+  IAMRoleAdminInstanceProfile:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./IAM/IAMRole.yml
+      Parameters:
+        NestProjectName: !Ref ProjectName
+        NestEnvironment: !Ref Environment
+
+# ------------------------------------------------------------#
+#  SecurityGroup
+# ------------------------------------------------------------#
+  SecurityGroupEC2RDS:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./SecurityGroup/SecurityGroup.yml
+      Parameters:
+        NestProjectName: !Ref ProjectName
+        NestEnvironment: !Ref Environment
+
+# ------------------------------------------------------------#
+#  EC2 Public AmazonLinux2
+# ------------------------------------------------------------#
+  EC2PublicServer:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./EC2/PublicEC2Server.yml
+      Parameters:
+        NestProjectName: !Ref ProjectName
+        NestEnvironment: !Ref Environment
+        NestEC2KeyPair: !Ref EC2KeyPair
+        NestEC2PublicAmazonLinux2: !Ref EC2PublicAmazonLinux2
+        NestInstanceTypeAmazonLinux2: !Ref InstanceTypeAmazonLinux2
+        NestAmazonLinux2ImageID: !Ref AmazonLinux2ImageID
+        NestIAMRoleAdminInstanceProfile: !GetAtt IAMRoleAdminInstanceProfile.Outputs.NestIAMRoleInstanceProfileName
+        NestSecurityGroupEC2RDS: !GetAtt SecurityGroupEC2RDS.Outputs.NestSecurityGroupEC2RDSName
+    DependsOn: 
+     - IAMRoleAdminInstanceProfile
+     - SecurityGroupEC2RDS
+
+# ------------------------------------------------------------#
+#  EC2 Ubuntu20
+# ------------------------------------------------------------#
+  EC2UbuntuServer:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./EC2/PublicEC2Server.yml
+      Parameters:
+        NestProjectName: !Ref ProjectName
+        NestEnvironment: !Ref Environment
+        NestEC2KeyPair: !Ref EC2KeyPair
+        NestEC2Ubuntu20: !Ref EC2Ubuntu20
+        NestInstanceTypeUbuntu20: !Ref InstanceTypeUbuntu20  
+        NestUbuntu20ImageID: !Ref Ubuntu20ImageID
+        NestIAMRoleAdminInstanceProfile: !GetAtt IAMRoleAdminInstanceProfile.Outputs.NestIAMRoleInstanceProfileName
+        NestSecurityGroupEC2RDS: !GetAtt SecurityGroupEC2RDS.Outputs.NestSecurityGroupEC2RDSName
+    DependsOn: 
+     - IAMRoleAdminInstanceProfile
+     - SecurityGroupEC2RDS
+
+# ------------------------------------------------------------#
+#  EC2 Private AmazonLinux2
+# ------------------------------------------------------------#
+  EC2PrivateServer:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./EC2/PrivateEC2Server.yml
+      Parameters:
+        NestProjectName: !Ref ProjectName
+        NestEnvironment: !Ref Environment
+        NestEC2KeyPair: !Ref EC2KeyPair
+        NestEC2PrivateAmazonLinux2: !Ref EC2PrivateAmazonLinux2
+        NestInstanceTypeAmazonLinux2: !Ref InstanceTypeAmazonLinux2        
+        NestAmazonLinux2ImageID: !Ref AmazonLinux2ImageID
+        NestIAMRoleAdminInstanceProfile: !GetAtt IAMRoleAdminInstanceProfile.Outputs.NestIAMRoleInstanceProfileName
+        NestSecurityGroupEC2RDS: !GetAtt SecurityGroupEC2RDS.Outputs.NestSecurityGroupEC2RDSName
+    DependsOn: 
+     - IAMRoleAdminInstanceProfile
+     - SecurityGroupEC2RDS
+
+# ------------------------------------------------------------#
+#  RDS SubnetGroup
+# ------------------------------------------------------------#
+  RDSSubnetGroup:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./RDS/SubnetGroup.yml
+      Parameters:
+        NestProjectName: !Ref ProjectName
+        NestEnvironment: !Ref Environment
+
+# ------------------------------------------------------------#
+#  RDS
+# ------------------------------------------------------------#
+  DBServer:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./EC2/PrivateEC2Server.yml
+      Parameters:
+        NestProjectName: !Ref ProjectName
+        NestEnvironment: !Ref Environment
+        NestEC2KeyPair: !Ref EC2KeyPair
+        NestRDSPostgres: !Ref RDSPostgres
+        NestDBSubnetGroupName: !GetAtt RDSSubnetGroup.Outputs.NestRDSSubnetGroupName
+        NestMasterUserPassword: !Ref MasterUserPassword
+    DependsOn: 
+     - IAMRoleAdminInstanceProfile
+     - SecurityGroupEC2RDS
+     - RDSSubnetGroup
+
+# ------------------------------------------------------------#
+# Output Parameters
+# ------------------------------------------------------------#                
+# Outputs:

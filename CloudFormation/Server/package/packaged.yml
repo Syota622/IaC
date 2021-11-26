@@ -1,0 +1,214 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Server Create
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: Common Variable Configuration
+      Parameters:
+      - ProjectName
+      - Environment
+    - Label:
+        default: EC2 Server
+      Parameters:
+      - EC2PublicAmazonLinux2
+      - EC2PrivateAmazonLinux2
+      - EC2Ubuntu
+    - Label:
+        default: RDS Server
+      Parameters:
+      - RDSPostgres
+    - Label:
+        default: ImageId/InstanceType
+      Parameters:
+      - EC2KeyPair
+      - AmazonLinux2ImageID
+      - Ubuntu20ImageID
+      - InstanceTypeAmazonLinux2
+      - InstanceTypeUbuntu20
+Parameters:
+  ProjectName:
+    Type: String
+  Environment:
+    Type: String
+    AllowedValues:
+    - dev
+    - stg
+    - prod
+  MasterUserPassword:
+    NoEcho: true
+    Type: String
+  EC2PublicAmazonLinux2:
+    Default: false
+    Type: String
+    AllowedValues:
+    - true
+    - false
+  EC2PrivateAmazonLinux2:
+    Default: false
+    Type: String
+    AllowedValues:
+    - true
+    - false
+  EC2Ubuntu20:
+    Default: false
+    Type: String
+    AllowedValues:
+    - true
+    - false
+  RDSPostgres:
+    Default: false
+    Type: String
+    AllowedValues:
+    - true
+    - false
+  EC2KeyPair:
+    Default: suzukis_key
+    Type: String
+  AmazonLinux2ImageID:
+    Default: ami-0e60b6d05dc38ff11
+    Type: String
+  Ubuntu20ImageID:
+    Default: ami-036d0684fc96830ca
+    Type: String
+  InstanceTypeAmazonLinux2:
+    Default: t2.micro
+    Type: String
+  InstanceTypeUbuntu20:
+    Default: t2.micro
+    Type: String
+Resources:
+  IAMRoleAdminInstanceProfile:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.ap-northeast-1.amazonaws.com/suzukis-cloudformatin-template-s3-store-prod/b4777f4532d134d1e19f6ef47aa8fbfe.template
+      Parameters:
+        NestProjectName:
+          Ref: ProjectName
+        NestEnvironment:
+          Ref: Environment
+  SecurityGroupEC2RDS:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.ap-northeast-1.amazonaws.com/suzukis-cloudformatin-template-s3-store-prod/b348313bad0bb44e75860fafa4cac1a1.template
+      Parameters:
+        NestProjectName:
+          Ref: ProjectName
+        NestEnvironment:
+          Ref: Environment
+  EC2PublicServer:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.ap-northeast-1.amazonaws.com/suzukis-cloudformatin-template-s3-store-prod/998e455331e1e0eb0d21aabb2e65d04f.template
+      Parameters:
+        NestProjectName:
+          Ref: ProjectName
+        NestEnvironment:
+          Ref: Environment
+        NestEC2KeyPair:
+          Ref: EC2KeyPair
+        NestEC2PublicAmazonLinux2:
+          Ref: EC2PublicAmazonLinux2
+        NestInstanceTypeAmazonLinux2:
+          Ref: InstanceTypeAmazonLinux2
+        NestAmazonLinux2ImageID:
+          Ref: AmazonLinux2ImageID
+        NestIAMRoleAdminInstanceProfile:
+          Fn::GetAtt:
+          - IAMRoleAdminInstanceProfile
+          - Outputs.NestIAMRoleInstanceProfileName
+        NestSecurityGroupEC2RDS:
+          Fn::GetAtt:
+          - SecurityGroupEC2RDS
+          - Outputs.NestSecurityGroupEC2RDSName
+    DependsOn:
+    - IAMRoleAdminInstanceProfile
+    - SecurityGroupEC2RDS
+  EC2UbuntuServer:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.ap-northeast-1.amazonaws.com/suzukis-cloudformatin-template-s3-store-prod/998e455331e1e0eb0d21aabb2e65d04f.template
+      Parameters:
+        NestProjectName:
+          Ref: ProjectName
+        NestEnvironment:
+          Ref: Environment
+        NestEC2KeyPair:
+          Ref: EC2KeyPair
+        NestEC2Ubuntu20:
+          Ref: EC2Ubuntu20
+        NestInstanceTypeUbuntu20:
+          Ref: InstanceTypeUbuntu20
+        NestUbuntu20ImageID:
+          Ref: Ubuntu20ImageID
+        NestIAMRoleAdminInstanceProfile:
+          Fn::GetAtt:
+          - IAMRoleAdminInstanceProfile
+          - Outputs.NestIAMRoleInstanceProfileName
+        NestSecurityGroupEC2RDS:
+          Fn::GetAtt:
+          - SecurityGroupEC2RDS
+          - Outputs.NestSecurityGroupEC2RDSName
+    DependsOn:
+    - IAMRoleAdminInstanceProfile
+    - SecurityGroupEC2RDS
+  EC2PrivateServer:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.ap-northeast-1.amazonaws.com/suzukis-cloudformatin-template-s3-store-prod/3f5c5b695fb066c05fc4c252debc0f7e.template
+      Parameters:
+        NestProjectName:
+          Ref: ProjectName
+        NestEnvironment:
+          Ref: Environment
+        NestEC2KeyPair:
+          Ref: EC2KeyPair
+        NestEC2PrivateAmazonLinux2:
+          Ref: EC2PrivateAmazonLinux2
+        NestInstanceTypeAmazonLinux2:
+          Ref: InstanceTypeAmazonLinux2
+        NestAmazonLinux2ImageID:
+          Ref: AmazonLinux2ImageID
+        NestIAMRoleAdminInstanceProfile:
+          Fn::GetAtt:
+          - IAMRoleAdminInstanceProfile
+          - Outputs.NestIAMRoleInstanceProfileName
+        NestSecurityGroupEC2RDS:
+          Fn::GetAtt:
+          - SecurityGroupEC2RDS
+          - Outputs.NestSecurityGroupEC2RDSName
+    DependsOn:
+    - IAMRoleAdminInstanceProfile
+    - SecurityGroupEC2RDS
+  RDSSubnetGroup:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.ap-northeast-1.amazonaws.com/suzukis-cloudformatin-template-s3-store-prod/b618b9f8a258f585f3366f541312a503.template
+      Parameters:
+        NestProjectName:
+          Ref: ProjectName
+        NestEnvironment:
+          Ref: Environment
+  DBServer:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.ap-northeast-1.amazonaws.com/suzukis-cloudformatin-template-s3-store-prod/3f5c5b695fb066c05fc4c252debc0f7e.template
+      Parameters:
+        NestProjectName:
+          Ref: ProjectName
+        NestEnvironment:
+          Ref: Environment
+        NestEC2KeyPair:
+          Ref: EC2KeyPair
+        NestRDSPostgres:
+          Ref: RDSPostgres
+        NestDBSubnetGroupName:
+          Fn::GetAtt:
+          - RDSSubnetGroup
+          - Outputs.NestRDSSubnetGroupName
+        NestMasterUserPassword:
+          Ref: MasterUserPassword
+    DependsOn:
+    - IAMRoleAdminInstanceProfile
+    - SecurityGroupEC2RDS
+    - RDSSubnetGroup

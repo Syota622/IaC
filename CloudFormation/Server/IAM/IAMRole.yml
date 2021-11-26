@@ -1,0 +1,49 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: IAMRole Create 
+
+Parameters: 
+  NestProjectName:
+    Type: String
+  NestEnvironment:
+    Type: String
+
+Resources: 
+# ------------------------------------------------------------#
+#  IAM(Role) Resource ## Admin
+# ------------------------------------------------------------#
+  NestIAMRoleAdmin:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${NestProjectName}-EC2-Admin-Role-${NestEnvironment}
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+        - 
+          Effect: Allow
+          Action: 
+          - sts:AssumeRole
+          Principal: 
+            Service: 
+            - ec2.amazonaws.com
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/AdministratorAccess
+      Path: "/"
+
+  NestIAMRoleAdminInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: "/"
+      Roles:
+      - !Ref NestIAMRoleAdmin
+
+Outputs:
+# IAM Role
+  NestIAMRoleInstanceProfileName:
+    Value: !Ref NestIAMRoleAdminInstanceProfile
+    Export:
+      Name: !Sub ${NestProjectName}-EC2-Admin-RoleName-${NestEnvironment}
+
+  NestIAMRoleInstanceProfileArn:
+    Value: !GetAtt NestIAMRoleAdminInstanceProfile.Arn
+    Export:
+      Name: !Sub ${NestProjectName}-EC2-Admin-RoleArn-${NestEnvironment}

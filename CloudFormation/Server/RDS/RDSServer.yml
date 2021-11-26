@@ -1,0 +1,69 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: RDS Create 
+
+Parameters: 
+  NestProjectName:
+    Type: String
+  NestEnvironment:
+    Type: String
+  NestEC2KeyPair:
+    Type: String
+  NestRDSPostgres:
+    Type: String
+  NestDBSubnetGroupName:
+    Type: String
+  NestMasterUserPassword:
+    Type: String
+  NestSecurityGroupEC2RDS:
+    Type: String
+
+Conditions: 
+# ------------------------------------------------------------#
+# Conditions
+# ------------------------------------------------------------# 
+# EC2 ture or false
+  NestRDSPostgresConditions: !Equals [ !Ref NestRDSPostgres, true ]
+
+Resources: 
+# ------------------------------------------------------------#
+#  Private EC2 Server
+# ------------------------------------------------------------#
+  DBServer:
+    Type: AWS::RDS::DBInstance
+    Condition: NestRDSPostgresConditions
+    Properties:
+      AutoMinorVersionUpgrade: true
+      CopyTagsToSnapshot: true
+      MultiAZ: false
+      PubliclyAccessible: false
+      StorageEncrypted: false
+      AllocatedStorage: 20
+      BackupRetentionPeriod: 1
+      Port: 5432
+      AvailabilityZone: ap-northeast-1a
+      DBInstanceClass: db.t2.micro
+      DBInstanceIdentifier: !Sub ${NestProjectName}-db-${NestEnvironment}
+      DBName: !Sub ${NestProjectName}_production
+      VPCSecurityGroups: 
+        - !Ref NestSecurityGroupEC2RDS
+      DBParameterGroupName: default.postgres12
+      DBSubnetGroupName: !Ref NestDBSubnetGroupName
+      Engine: postgres
+      EngineVersion: 12.8
+      MasterUserPassword: !Ref NestMasterUserPassword
+      MasterUsername: postgres
+      OptionGroupName: default:postgres-12
+      StorageType: gp2
+
+# ------------------------------------------------------------#
+# Output Parameters
+# ------------------------------------------------------------#                
+Outputs:
+  NestDBServer:
+    Value: !Ref DBServer
+    Export:
+      Name: !Sub ${NestProjectName}-db-server-${NestEnvironment}
+  NestDBServerEndpoint:
+    Value: !GetAtt DBServer.Endpoint.Address
+    Export:
+      Name: !Sub ${NestProjectName}-db-server-endpoint-${NestEnvironment}

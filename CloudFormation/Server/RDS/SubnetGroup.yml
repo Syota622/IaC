@@ -1,0 +1,33 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: IAMRole Create 
+
+Parameters: 
+  NestProjectName:
+    Type: String
+  NestEnvironment:
+    Type: String
+
+Resources: 
+# ------------------------------------------------------------#
+#  DBSubnetGroup
+# ------------------------------------------------------------#
+  NestRDSSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties: 
+      DBSubnetGroupName: !Sub ${NestProjectName}-subnetgroup-${NestEnvironment}
+      DBSubnetGroupDescription: rds-subnetgroup
+      SubnetIds: 
+          - Fn::ImportValue: !Sub ${NestProjectName}-private-subnet-a-${NestEnvironment}
+          - Fn::ImportValue: !Sub ${NestProjectName}-private-subnet-c-${NestEnvironment}
+          - Fn::ImportValue: !Sub ${NestProjectName}-private-subnet-d-${NestEnvironment}
+      Tags: 
+        - Key: Name
+          Value: !Sub ${NestProjectName}-subnetgroup-${NestEnvironment}
+
+Outputs:
+# SecurityGroup
+  NestRDSSubnetGroupName:
+    Value: !Ref NestRDSSubnetGroup
+    Export:
+      Name: !Sub ${NestProjectName}-subnetgroup-${NestEnvironment}
+

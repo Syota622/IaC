@@ -1,8 +1,12 @@
 # CloudFormationテンプレートの保管するためのS3バケットを作成
 aws cloudformation create-stack --stack-name cfn-template-s3-store --template-body file://cloudformatin-template-s3-store.yml --parameters ParameterKey=CloudFormationTemplateBucketName,ParameterValue=cloudformatin-template-s3-store ParameterKey=ProjectName,ParameterValue=suzukis ParameterKey=Environment,ParameterValue=prod
 
-## ネットワーク環境の構築
-aws cloudformation create-stack --stack-name test --template-body file://EC2/root-ec2.yml \
+## aws cli cloudformation create-stack
+aws cloudformation create-stack --stack-name server --template-body file://Server/root-server.yml \
+  --parameters ParameterKey=ProjectName,ParameterValue=suzukis ParameterKey=Environment,ParameterValue=prod
+
+## aws cli cloudformation update-stack
+aws cloudformation update-stack --stack-name server --template-body file://Server/root-server.yml \
   --parameters ParameterKey=ProjectName,ParameterValue=suzukis ParameterKey=Environment,ParameterValue=prod
 
 ## S3 アップロード

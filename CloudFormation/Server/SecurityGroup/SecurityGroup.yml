@@ -1,0 +1,45 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: IAMRole Create 
+
+Parameters: 
+  NestProjectName:
+    Type: String
+  NestEnvironment:
+    Type: String
+
+Resources: 
+# ------------------------------------------------------------#
+#  SecurityGroup
+# ------------------------------------------------------------#
+  NestSecurityGroupEC2RDS:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "all-allowed-securitygroup"
+      GroupName: !Sub ${NestProjectName}-ec2rds-securitygroup-${NestEnvironment}
+      SecurityGroupIngress:
+            -
+              IpProtocol: -1 # 全てのプロトコルを許可
+              CidrIp: 0.0.0.0/0
+      VpcId: 
+        Fn::ImportValue:
+          !Sub ${NestProjectName}-vpc-${NestEnvironment}  # VPC ID を記載
+
+  NestSecurityGroupEC2RDSIgressSG:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !GetAtt NestSecurityGroupEC2RDS.GroupId
+      IpProtocol: -1
+      FromPort: 0
+      ToPort: 0
+      SourceSecurityGroupId: !GetAtt NestSecurityGroupEC2RDS.GroupId
+
+Outputs:
+# SecurityGroup
+  NestSecurityGroupEC2RDSName:
+    Value: !Ref NestSecurityGroupEC2RDS
+    Export:
+      Name: !Sub ${NestProjectName}-ec2rds-securitygroup-name-${NestEnvironment}
+  NestSecurityGroupEC2RDSId:
+    Value: !GetAtt NestSecurityGroupEC2RDS.GroupId
+    Export:
+      Name: !Sub ${NestProjectName}-ec2rds-securitygroup-id-${NestEnvironment}
